@@ -26,20 +26,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          # Node 24 ships with npm 11.x which supports Trusted Publishing
+          # (OIDC auto-exchange in npm publish). Node 22 ships npm 10.x
+          # and in-place upgrades via corepack/npm-install-g don't cleanly
+          # swap the active binary.
+          node-version: "24"
           # Intentionally NOT setting registry-url: it causes setup-node
           # to write a placeholder .npmrc with a bogus _authToken that
-          # npm Trusted Publishing then tries (and fails) to use instead
-          # of falling back to OIDC.
+          # npm Trusted Publishing then tries (and fails) to use.
 
-      - name: Install npm 11.5.1+ via corepack for Trusted Publishing
-        # Node 22 ships npm 10.x; Trusted Publishing requires >= 11.5.1.
-        # corepack avoids the in-place npm upgrade bug (promise-retry
-        # MODULE_NOT_FOUND) from 'npm install -g npm@latest'.
+      - name: Check npm supports Trusted Publishing
         run: |
-          corepack enable
-          corepack install -g npm@11.5.1
           npm --version
+          node --version
 
       - name: Install dependencies
         run: npm ci
