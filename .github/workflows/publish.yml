@@ -1,0 +1,46 @@
+name: Publish to npm
+
+# This workflow runs INSIDE the public spectracost/node-sdk repo after
+# the sync bot pushes a new v* tag. It publishes the package to npm
+# with provenance (only possible from a public GitHub repo).
+#
+# Requires an NPM_TOKEN secret on spectracost/node-sdk:
+#   gh secret set NPM_TOKEN --repo spectracost/node-sdk
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to npm with provenance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
