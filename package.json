@@ -1,6 +1,6 @@
 {
   "name": "spectracost",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AI cost observability SDK - see the full spectrum of your AI spend",
   "license": "MIT",
   "author": "Spectracost",
