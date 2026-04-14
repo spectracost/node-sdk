@@ -27,13 +27,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: "https://registry.npmjs.org"
+          # Intentionally NOT setting registry-url: it causes setup-node
+          # to write a placeholder .npmrc with a bogus _authToken that
+          # npm Trusted Publishing then tries (and fails) to use instead
+          # of falling back to OIDC.
 
       - name: Install npm 11.5.1+ via corepack for Trusted Publishing
         # Node 22 ships npm 10.x; Trusted Publishing requires >= 11.5.1.
-        # `npm install -g npm@latest` hits an in-place upgrade bug
-        # (missing promise-retry), so we use corepack to swap the
-        # package-manager cleanly.
+        # corepack avoids the in-place npm upgrade bug (promise-retry
+        # MODULE_NOT_FOUND) from 'npm install -g npm@latest'.
         run: |
           corepack enable
           corepack install -g npm@11.5.1
