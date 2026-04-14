@@ -1,11 +1,12 @@
 name: Publish to npm
 
 # This workflow runs INSIDE the public spectracost/node-sdk repo after
-# the sync bot pushes a new v* tag. It publishes the package to npm
-# with provenance (only possible from a public GitHub repo).
+# the sync bot pushes a new v* tag. It publishes to npm via Trusted
+# Publishing (OIDC), so no long-lived NPM_TOKEN secret is needed.
 #
-# Requires an NPM_TOKEN secret on spectracost/node-sdk:
-#   gh secret set NPM_TOKEN --repo spectracost/node-sdk
+# Prerequisite: spectracost on npm must be configured with a trusted
+# publisher pointing at spectracost/node-sdk + publish.yml (configured
+# once at https://www.npmjs.com/package/spectracost/access).
 
 on:
   push:
@@ -28,6 +29,10 @@ jobs:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Upgrade npm CLI for Trusted Publishing support
+        # Node 22 ships npm 10.x; Trusted Publishing requires >= 11.5.1.
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
@@ -40,7 +45,5 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish to npm with provenance
+      - name: Publish to npm with provenance (Trusted Publishing)
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
